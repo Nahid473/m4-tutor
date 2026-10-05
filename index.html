@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a1020">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="MCQ Master: exams, Daily 50, search, read mode and more practice. Installable and works offline.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MCQ Master">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>MCQ Master</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar" id="topbar">
+ <div class="topbar-in">
+  <button class="brand" onclick="show('home')" aria-label="Go to dashboard"><span class="logo">⚡ <b>MCQ</b> Master</span></button>
+  <span class="netchip" id="netChip" style="display:none">⚠ Offline</span>
+  <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+  <nav class="nav" id="navMenu" aria-label="Main navigation">
+   <button class="navbtn active" data-view="home" onclick="show('home')"><span>🏠</span><span>Dashboard</span></button>
+   <button class="navbtn" data-view="daily" onclick="show('daily')"><span>📅</span><span>Daily 50</span><span id="dailyBadge" class="badge">0</span></button>
+   <button class="navbtn" data-view="bank" onclick="show('bank')"><span>📚</span><span>Question Bank</span></button>
+   <button class="navbtn" data-view="ai" onclick="show('ai')"><span>✦</span><span>MCQ AI</span></button>
+   <button class="navbtn" data-view="slider" onclick="show('slider')"><span>🎞️</span><span>Question Slider</span></button>
+   <button class="navbtn" data-view="read" onclick="show('read')"><span>📖</span><span>Read</span></button>
+   <button class="navbtn" data-view="search" onclick="show('search')"><span>🔍</span><span>Search</span></button>
+   <button class="navbtn" data-view="manage" onclick="show('manage')"><span>✍️</span><span>Add Question</span></button>
+   <button class="navbtn" data-view="practice" onclick="show('practice')"><span>🧠</span><span>More Practice</span><span id="wrongBadge" class="badge">0</span></button>
+   <button class="navbtn" data-view="history" onclick="show('history')"><span>📊</span><span>History</span></button>
+   <button class="navbtn dng" onclick="resetAll()"><span>🗑️</span><span>Reset Local Data</span></button>
+  </nav>
+ </div>
+</header>
+<div class="app">
+<section id="home" class="view active">
+ <div class="homehead"><div class="muted" style="font-size:13px">Welcome back 👋</div><h1>What do you want to practice?</h1></div>
+ <div class="card installcard" id="installCard" style="display:none"><div><b>📲 Install MCQ Master</b><div class="muted" id="installTxt" style="font-size:13px;margin-top:4px"></div></div><div style="display:flex;gap:8px"><button type="button" class="btn primary" id="installBtn" style="display:none" onclick="installApp()">Install</button><button type="button" class="btn" onclick="dismissInstall()">Not now</button></div></div>
+ <div class="minis">
+  <div class="mini"><b id="totalQ">0</b><span>Questions</span></div>
+  <div class="mini"><b id="totalExam">0</b><span>Exams</span></div>
+  <div class="mini"><b id="bestScore">0%</b><span>Best</span></div>
+  <div class="mini"><b id="practiceCount">0</b><span>Practice</span></div>
+ </div>
+ <button type="button" class="dailycard" onclick="show('daily')"><span class="cic">📅</span><span class="stxt"><b>Daily 50</b><span class="muted">Today's mixed questions • 60 seconds each</span></span><span class="chev">›</span></button>
+ <h3 class="sectitle">Subjects</h3>
+ <div class="catgrid" id="catGrid"></div>
+ 
+</section>
+
+<section id="subs" class="view">
+ <button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div class="hero sethero" id="subHero"></div>
+ <h3 class="sectitle">Choose a sub-category</h3>
+ <div id="subList"></div>
+</section>
+
+<section id="setup" class="view">
+ <button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div class="hero sethero" id="setHero"></div>
+ <div class="tkt" aria-live="polite">
+  <div class="tk"><b id="tkQ">10</b><span>Questions</span></div>
+  <div class="tk"><b id="tkT">No limit</b><span id="tkTl">Timer</span></div>
+  <div class="tk"><b id="tkN">None</b><span>Cut mark</span></div>
+  <div class="tk hl"><b id="tkM">10</b><span>Full marks</span></div>
+ </div>
+ <div style="display:none">
+  <select id="cat" onchange="loadSubs()"></select><select id="sub" onchange="loadLessons()"></select>
+  <select id="count"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="30">30</option><option value="50">50</option><option value="1000">All</option></select>
+  <select id="negative"><option value="0">Off</option><option value=".25">−0.25</option><option value=".5">−0.50</option><option value="1">−1.00</option></select>
+  <select id="qtype"><option value="all">Both</option><option value="mcq">MCQ</option><option value="text">Short answer</option></select>
+  <select id="qorder"><option value="random">Random</option><option value="present">Original</option></select>
+  <select id="timerMode" onchange="timerUi(true)"><option value="off">No timer</option><option value="q">Per question</option><option value="all">Whole exam</option></select>
+ </div>
+
+ <div class="setgrp">
+  <div class="setrow">
+   <div class="sethd"><span class="seti" style="--c1:#4f5bd5;--c2:#7c3aed">🔢</span><div class="sett"><b>Number of questions</b><small>How many questions in this exam</small></div></div>
+   <div class="seg wrap" data-for="count"></div>
+  </div>
+  <div class="setrow">
+   <div class="sethd"><span class="seti" style="--c1:#0f766e;--c2:#10b981">🧩</span><div class="sett"><b>Question type</b><small>Multiple choice, typed answers, or both</small></div></div>
+   <div class="seg" data-for="qtype"></div>
+  </div>
+  <div class="setrow">
+   <div class="sethd"><span class="seti" style="--c1:#b45309;--c2:#f59e0b">🔀</span><div class="sett"><b>Question order</b><small>Original order continues where you stopped</small></div></div>
+   <div class="seg" data-for="qorder"></div>
+  </div>
+ </div>
+
+ <div class="setgrp">
+  <div class="setrow">
+   <div class="sethd"><span class="seti" style="--c1:#be123c;--c2:#f43f5e">⏱</span><div class="sett"><b>Timer</b><small>Count down for each question or the whole exam</small></div></div>
+   <div class="seg" data-for="timerMode"></div>
+   <div id="timerValBox" class="tvbox" style="display:none">
+    <div class="stepper">
+     <button type="button" class="stp" onclick="timerStep(-1)" aria-label="Less time">−</button>
+     <div class="stpv"><input type="number" id="timerVal" min="5" max="3600" value="60" inputmode="numeric" oninput="timerPaint();setupSummary()" aria-label="Timer value"><span id="timerValLbl">seconds per question</span></div>
+     <button type="button" class="stp" onclick="timerStep(1)" aria-label="More time">+</button>
+    </div>
+    <div class="chips" id="timerPresets"></div>
+   </div>
+  </div>
+  <div class="setrow">
+   <div class="sethd"><span class="seti" style="--c1:#6d28d9;--c2:#d946ef">✂️</span><div class="sett"><b>Cut mark</b><small>Marks removed for every wrong answer. Skipped questions lose nothing.</small></div></div>
+   <div class="seg" data-for="negative"></div>
+  </div>
+ </div>
+
+ <div id="lessonBox" class="setgrp" style="display:none;position:relative;padding:14px">
+  <div class="sethd" style="margin-bottom:10px"><span class="seti" style="--c1:#0369a1;--c2:#38bdf8">📑</span><div class="sett"><b>Lessons</b><small>Only the chosen lessons are loaded</small></div></div>
+  <button type="button" class="msel" id="lessonBtn" onclick="toggleLessonPanel()" aria-expanded="false" aria-controls="lessonPanel"><span id="lessonBtnTxt">All lessons</span><span aria-hidden="true">▾</span></button>
+  <div class="mspanel" id="lessonPanel" style="display:none">
+   <div class="mshead"><label style="margin:0;display:flex;gap:8px;align-items:center;cursor:pointer;color:#eef3ff"><input type="checkbox" id="lessonAll" style="width:auto" checked onchange="toggleLessons(this.checked)"> Select all</label><button type="button" class="btn" style="padding:6px 12px" onclick="toggleLessonPanel(false)">Done</button></div>
+   <div class="lessonlist" id="lessonList"></div>
+  </div>
+  <div class="muted" style="font-size:12px;margin-top:8px" id="lessonInfo"></div>
+ </div>
+
+ <button type="button" class="cta" onclick="startExam()">Start exam →</button>
+ <p class="muted setnote">Questions you already had in earlier exams are skipped until the selection runs out. Over 50 questions are shown 50 per page.</p>
+</section>
+
+<section id="exam" class="view">
+ <button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div class="hero">
+  <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><h2 id="batchTitle">Questions</h2><div class="muted" id="batchInfo"></div></div><div style="display:flex;gap:6px;align-items:flex-start"><div class="badge timer" id="timerBadge" style="display:none"></div><div class="badge" id="answeredInfo">0 answered</div></div></div>
+  <div class="bar"><i id="batchBar"></i></div>
+ </div>
+ <div class="qnav" id="qnav" style="display:none"></div>
+ <div id="questions"></div>
+ <div class="sticky"><span class="muted" id="stickyHint">Answer all you can, then submit.</span><button class="btn primary" id="submitBtn" onclick="primaryAction()">Submit Questions →</button></div>
+</section>
+
+<section id="result" class="view">
+ <button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div class="card">
+  <div class="ring" id="ring"><div class="ringin" id="finalPercent">0%</div></div>
+  <h1 id="resultTitle" style="text-align:center">Result</h1><p class="muted" id="resultText" style="text-align:center"></p>
+  <div class="stats">
+   <div class="card"><div class="muted">Correct</div><b id="rCorrect">0</b></div>
+   <div class="card"><div class="muted">Wrong</div><b id="rWrong">0</b></div>
+   <div class="card"><div class="muted">Skipped</div><b id="rSkip">0</b></div>
+   <div class="card"><div class="muted">Score</div><b id="rScore">0</b></div>
+  </div>
+  <div id="batchWrong"></div>
+  <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:16px">
+   <button class="btn primary" id="nextBtn" onclick="nextBatch()">Next Questions →</button>
+   <button class="btn good" onclick="show('practice')">More Practice</button>
+   <button class="btn primary" id="repeatBtn" style="display:none" onclick="startExam()">Next MCQs →</button>
+   <button class="btn" onclick="show('home')">Back to Main Page</button>
+  </div>
+ </div>
+</section>
+
+<section id="daily" class="view">
+ <button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div class="hero">
+  <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:flex-start">
+   <div><h2>📅 Daily Suggested Questions</h2><div class="muted" id="dailyInfo"></div></div>
+   <div class="badge" id="dailyStats">0 / 0 answered</div>
+  </div>
+  <div class="bar"><i id="dailyBar"></i></div>
+  <p class="muted" style="margin:0">Answer one question at a time. After the last question you see your score. Wrong answers are added to More Practice.</p>
+   <div id="dailyTimerRow" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px">
+    <span class="badge timer" id="dailyTimer" style="display:none"></span>
+    <span class="muted" style="font-size:13px">Every question has 60 seconds. When time ends, the next question opens automatically.</span>
+   </div>
+ </div>
+ <div id="dailyResult"></div>
+ <div id="dailyList"></div>
+ <div class="sticky" id="dailySubmitBar"><span class="muted" id="dailySubmitInfo">0 / 0 answered</span><button class="btn primary" id="dailyNextBtn" onclick="dailyPrimary()">Next →</button></div>
+</section>
+
+<section id="bank" class="view">
+<button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div class="pghead"><h1>📚 Question Bank</h1><p class="muted">Every subject, sub-category and lesson. Tap a sub-category to start practising it.</p></div>
+ <div class="minis">
+  <div class="mini"><b id="bankTotal">0</b><span>Questions</span></div>
+  <div class="mini"><b id="bankCats">0</b><span>Subjects</span></div>
+  <div class="mini"><b id="bankSubs">0</b><span>Sub-cats</span></div>
+  <div class="mini"><b id="bankDaily">0</b><span>Daily set</span></div>
+ </div>
+ <div id="bankList"></div>
+</section>
+
+<section id="read" class="view">
+<button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div id="rdPicker">
+  <div class="pghead"><h1>📖 Read</h1><p class="muted">Study mode: questions with the correct answer and explanation. No timer, no score, and nothing is added to Wrong, Skipped or History.</p></div>
+  <div class="panel">
+   <div class="flab">Subject</div>
+   <div class="chips" id="rdCatChips"></div>
+   <div class="flab" style="margin-top:10px">Sub-category</div>
+   <div class="chips" id="rdSubChips"></div>
+   <div id="rdLesRow" style="display:none;margin-top:8px"><div class="flab">Lesson</div><button type="button" class="pfield" onclick="readPickLesson()"><span id="rdLesTxt">All lessons</span><span class="chev">›</span></button></div>
+  </div>
+  <div class="panel" style="margin-top:12px">
+   <div class="flab">Question type</div><div class="seg" data-for="rdType"></div>
+   <div class="flab" style="margin-top:14px">Order</div><div class="seg" data-for="rdOrder"></div>
+   <div class="flab" style="margin-top:14px">Answers</div><div class="seg" data-for="rdMode"></div>
+  </div>
+  <div style="display:none">
+   <select id="rdCat" onchange="readSubs(false)"></select><select id="rdSub" onchange="readLessons(false)"></select><select id="rdLes"></select>
+   <select id="rdType"><option value="all">All</option><option value="mcq">MCQ</option><option value="text">Short answer</option></select>
+   <select id="rdOrder"><option value="present">Original</option><option value="random">Random</option></select>
+   <select id="rdMode"><option value="show">Show</option><option value="hide">Hide</option></select>
+  </div>
+  <button type="button" class="cta" id="rdStartBtn" onclick="readStart()">Start reading →</button>
+ </div>
+ <div id="rdResults" style="display:none">
+  <div class="rdhead">
+   <button type="button" class="rdchg" onclick="readChange()" aria-label="Change selection"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
+   <div class="rdsum"><b id="rdTitle"></b><span id="rdInfo"></span></div>
+   <button type="button" class="rdtog on" id="rdTog" onclick="readToggleAns()">👁 Answers shown</button>
+   <div class="rdprog"><i id="rdProg"></i></div>
+  </div>
+  <div id="rdList"></div>
+ </div>
+</section>
+
+<section id="search" class="view">
+<button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div class="pghead"><h1>🔍 Search</h1><p class="muted">Searches questions, options, answers and explanations in every subject. Bangla and English both work.</p></div>
+ <div class="sbarw">
+  <div class="sbar">
+   <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+   <input type="search" id="srchQ" placeholder="Search questions…" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="searchDebounce()" onkeydown="if(event.key==='Enter'){clearTimeout(srchTimer);srchLimit=20;searchRun()}">
+   <button type="button" class="sclear" id="srchClear" style="display:none" onclick="searchClear()" aria-label="Clear search">✕</button>
+  </div>
+ </div>
+ <div class="chips" id="srCatChips"></div>
+ <div class="chips" id="srSubChips" style="display:none"></div>
+ <div style="display:none"><select id="srchCat" onchange="srchCatChange()"></select><select id="srchSub" onchange="srchLimit=20;searchRun()"></select></div>
+ <div class="muted" style="font-size:13px;margin:4px 2px 12px" id="srchInfo"></div>
+ <div id="srchList"><div class="emptystate"><div class="eic">🔍</div><b>Type at least 2 letters</b><span>of a question, answer or explanation.</span></div></div>
+</section>
+
+<section id="manage" class="view">
+ <button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div class="pghead"><h1>✍️ Add Question</h1><p class="muted">Create your own multiple-choice or short-answer questions. They are saved on this device and appear in exams, Daily 50 and the Question Bank.</p></div>
+ <div class="card form">
+  <div class="formgrid">
+   <div><label>Type</label><select id="nqType" onchange="nqToggle()"><option value="mcq">Multiple choice (MCQ)</option><option value="text">Short answer (user types)</option></select></div>
+   <div><label>Lesson</label><input id="nqLes" placeholder="e.g. Rivers of Bangladesh"></div>
+   <div><label>Category</label><input id="nqCat" list="catDl" oninput="nqChips()" placeholder="e.g. General Knowledge"></div>
+   <div><label>Sub-category</label><input id="nqSub" list="subDl" oninput="nqChips()" placeholder="e.g. Geography"></div>
+  </div>
+  <div class="flab" style="margin-top:12px">Quick pick</div><div class="chips" id="nqCatChips"></div><div class="chips" id="nqSubChips" style="display:none"></div>
+  <datalist id="catDl"></datalist><datalist id="subDl"></datalist>
+  <div style="margin-top:12px"><label>Question</label><textarea id="nqQ" rows="2" placeholder="e.g. Dhaka is the capital of which country?"></textarea></div>
+  <div id="nqMcq" style="margin-top:12px">
+   <label>Options — select the radio button next to the correct one</label>
+   <div class="optrow"><input type="radio" name="nqCorrect" value="0" checked><input id="nqO0" placeholder="Option A"></div>
+   <div class="optrow"><input type="radio" name="nqCorrect" value="1"><input id="nqO1" placeholder="Option B"></div>
+   <div class="optrow"><input type="radio" name="nqCorrect" value="2"><input id="nqO2" placeholder="Option C (optional)"></div>
+   <div class="optrow"><input type="radio" name="nqCorrect" value="3"><input id="nqO3" placeholder="Option D (optional)"></div>
+  </div>
+  <div id="nqText" style="display:none;margin-top:12px">
+   <label>Accepted answers — one per line</label>
+   <textarea id="nqAns" rows="3" placeholder="Bangladesh&#10;People's Republic of Bangladesh"></textarea>
+   <div class="muted" style="font-size:12px;margin-top:5px">The user's answer is correct if it matches any line. Capital letters, punctuation and a/an/the are ignored, and one small typo is forgiven in longer answers.</div>
+  </div>
+  <div style="margin-top:12px"><label>Explanation (optional)</label><input id="nqExp" placeholder="Shown after answering"></div>
+  <div style="margin-top:14px"><button class="btn primary" onclick="addQuestion()">Add Question</button></div>
+ </div>
+ <div class="card" style="margin-top:14px"><h3>My Questions <span class="badge" id="myCount">0</span></h3><div id="myList"></div></div>
+</section>
+
+<section id="practice" class="view">
+<button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div class="pghead"><h1>🧠 More Practice</h1><p class="muted" id="practiceDesc"></p></div>
+ <div class="ptabs" id="ptabs">
+  <button type="button" class="tab active" data-tab="wrong" style="--ac:#ff5d73" onclick="setTab('wrong')"><span>❌</span><span>Wrong</span><span class="badge" id="tabWrong">0</span></button>
+  <button type="button" class="tab" data-tab="imp" style="--ac:#f5b942" onclick="setTab('imp')"><span>⭐</span><span>Important</span><span class="badge" id="tabImp">0</span></button>
+  <button type="button" class="tab" data-tab="skip" style="--ac:#38bdf8" onclick="setTab('skip')"><span>⏭</span><span>Skipped</span><span class="badge" id="tabSkip">0</span></button>
+  <button type="button" class="tab" data-tab="srch" style="--ac:#a78bfa" onclick="setTab('srch')"><span>🔍</span><span>Searched</span><span class="badge" id="tabSrch">0</span></button>
+  <button type="button" class="tab" data-tab="n10" style="--ac:#46e0aa" onclick="setTab('n10')"><span>🔁</span><span>10× Practice</span><span class="badge" id="tabN10">0</span></button>
+ </div>
+ <div id="practiceFilter"></div>
+ <div id="practiceActions"></div>
+ <div id="practiceList"></div>
+</section>
+
+<section id="history" class="view">
+<button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div class="pghead"><h1>📊 Exam History</h1><p class="muted">All exam results are stored locally on this device.</p></div>
+ <div id="historyList"></div>
+</section>
+
+<section id="ai" class="view">
+ <div class="aihead">
+  <button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span></button>
+  <div class="aibrand"><span class="aiav">✦</span><div><b>MCQ AI</b><small id="aiStatus">Works offline · reads your MCQ bank</small></div></div>
+  <button type="button" class="aiib" onclick="aiToggleSet()" aria-label="AI settings">⚙</button>
+  <button type="button" class="aiib" onclick="aiWelcome()" aria-label="New chat">＋</button>
+ </div>
+ <div class="aiset" id="aiSet" style="display:none">
+  <b>Online AI (optional)</b>
+  <p class="muted" style="font-size:13px;margin:4px 0 12px">Offline, MCQ AI answers from your question bank. Add a free Google Gemini API key (from aistudio.google.com/apikey) and it can also answer anything else. The key stays on this device.</p>
+  <label for="aiKey">Gemini API key</label><input type="password" id="aiKey" placeholder="AIza…" autocomplete="off">
+  <label for="aiModel">Model</label><input id="aiModel" placeholder="gemini-3.8 (optional)" autocomplete="off">
+  <div style="display:flex;gap:8px"><button type="button" class="btn primary" onclick="aiSaveCfg()">Save</button><button type="button" class="btn" onclick="aiClearCfg()">Remove key</button></div>
+ </div>
+ <div class="aichat" id="aiChat"></div>
+ <div class="aibottom">
+  <div class="chips aisug" id="aiSug"></div>
+  <div class="aicomp"><textarea id="aiIn" rows="1" placeholder="Ask about your questions…" oninput="aiGrow(this)" onkeydown="aiKey(event)" aria-label="Message MCQ AI"></textarea><button type="button" class="aisend" onclick="aiSend()" aria-label="Send">↑</button></div>
+ </div>
+</section>
+
+<section id="slider" class="view">
+ <button type="button" class="backbtn" onclick="goBack()" aria-label="Go back"><span class="bi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span>Back</span></button>
+ <div id="slPicker">
+  <div class="pghead"><h1>🎞️ Question Slider</h1><p class="muted">Questions slide past one by one. A timer moves to the next question on its own, and the answer with its explanation appears for you to read.</p></div>
+  <div class="panel">
+   <div class="flab">Subject</div><div class="chips" id="slCatChips"></div>
+   <div class="flab" style="margin-top:10px">Sub-category</div><div class="chips" id="slSubChips"></div>
+  </div>
+  <div class="panel" style="margin-top:12px">
+   <div class="flab">Time per question</div><div class="seg" data-for="slSec"></div>
+   <div class="flab" style="margin-top:14px">Show answer + explanation</div><div class="seg" data-for="slRev"></div>
+   <div class="flab" style="margin-top:14px">Order</div><div class="seg" data-for="slOrd"></div>
+  </div>
+  <div style="display:none">
+   <select id="slCat" onchange="slSubs(false)"></select><select id="slSub" onchange="slSync()"></select>
+   <select id="slSec"><option value="15">15s</option><option value="30">30s</option><option value="60" selected>60s</option><option value="90">90s</option><option value="120">120s</option></select>
+   <select id="slRev"><option value="now">Instantly</option><option value="half" selected>At half time</option><option value="tap">On tap</option></select>
+   <select id="slOrd"><option value="present">Original</option><option value="random">Random</option></select>
+  </div>
+  <button type="button" class="cta" id="slStartBtn" onclick="slStart()">Start slider →</button>
+ </div>
+ <div id="slRun" style="display:none">
+  <div class="slbar">
+   <button type="button" class="rdchg" onclick="slExit()" aria-label="Close slider">✕</button>
+   <div class="rdsum"><b id="slTitle"></b><span id="slInfo"></span></div>
+   <div class="slring" id="slRingW"><svg viewBox="0 0 36 36"><circle class="slr0" cx="18" cy="18" r="15.9155"/><circle class="slr1" id="slRing" cx="18" cy="18" r="15.9155"/></svg><b id="slSecs">60</b></div>
+  </div>
+  <div class="slprog"><i id="slProg"></i></div>
+  <div class="slstage" id="slStage"></div>
+  <div class="slctl">
+   <button type="button" class="slb" onclick="slGo(-1)" aria-label="Previous question">‹ Prev</button>
+   <button type="button" class="slb slp" id="slPlay" onclick="slPause()" aria-label="Pause or resume">❚❚</button>
+   <button type="button" class="slb" onclick="slGo(1)" aria-label="Next question">Next ›</button>
+  </div>
+ </div>
+</section>
+</div>
+<nav class="bottomnav" id="bottomNav" aria-label="App navigation">
+ <button type="button" class="bnbtn active" data-view="home" onclick="show('home')"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/></svg></span><span>Home</span></button>
+ <button type="button" class="bnbtn" data-view="daily" onclick="show('daily')"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><span>Daily 50</span><span id="dailyBadgeB" class="badge">0</span></button>
+ <button type="button" class="bnbtn" data-view="search" onclick="show('search')"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span><span>Search</span></button>
+ <button type="button" class="bnbtn" data-view="practice" onclick="show('practice')"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 20v-5h5"/></svg></span><span>Practice</span><span id="wrongBadgeB" class="badge">0</span></button>
+ <button type="button" class="bnbtn" data-view="more" aria-haspopup="dialog" aria-expanded="false" onclick="toggleMore()"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/></svg></span><span>More</span></button>
+</nav>
+<div class="sheetbg" id="sheetBg" onclick="toggleMore(false)" style="display:none"></div>
+<div class="sheet" id="moreSheet" role="dialog" aria-label="More" style="display:none">
+ <div class="sheethandle"></div>
+ <div class="sheettitle">More</div>
+ <div class="sgroup">
+  <button type="button" class="srow" onclick="show('ai')"><span class="sri" style="--c1:#6375ff;--c2:#46e0aa">✦</span><span class="srt"><b>MCQ AI</b><small>Ask, sort and quiz from your questions</small></span><span class="chev">›</span></button>
+  <button type="button" class="srow" onclick="show('slider')"><span class="sri" style="--c1:#be123c;--c2:#f43f5e">🎞️</span><span class="srt"><b>Question Slider</b><small>Timed slideshow with answers</small></span><span class="chev">›</span></button>
+ </div>
+ <div class="sgroup">
+  <button type="button" class="srow" onclick="show('bank')"><span class="sri" style="--c1:#4f5bd5;--c2:#7c3aed">📚</span><span class="srt"><b>Question Bank</b><small>All subjects and lessons</small></span><span class="chev">›</span></button>
+  <button type="button" class="srow" onclick="show('read')"><span class="sri" style="--c1:#0f766e;--c2:#10b981">📖</span><span class="srt"><b>Read</b><small>Study questions with answers</small></span><span class="chev">›</span></button>
+  <button type="button" class="srow" onclick="show('manage')"><span class="sri" style="--c1:#b45309;--c2:#f59e0b">✍️</span><span class="srt"><b>Add Question</b><small>Create your own questions</small></span><span class="chev">›</span></button>
+  <button type="button" class="srow" onclick="show('history')"><span class="sri" style="--c1:#0369a1;--c2:#38bdf8">📊</span><span class="srt"><b>History</b><small>Your exam results</small></span><span class="chev">›</span></button>
+ </div>
+ <div class="sgroup">
+  <button type="button" class="srow dng" onclick="resetAll()"><span class="sri">🗑️</span><span class="srt"><b>Reset Local Data</b><small>Clear progress, wrong list and history</small></span><span class="chev">›</span></button>
+ </div>
+ <button type="button" class="btn primary" id="installBtnSheet" style="display:none;width:100%;padding:14px" onclick="installApp()">📲 Install app</button>
+ <div class="muted" id="iosHint" style="display:none;margin-top:12px;font-size:13px;text-align:center">📲 To install: tap the Share button, then “Add to Home Screen”.</div>
+</div>
+<div class="sheetbg" id="pickBg" onclick="closePicker()" style="display:none"></div>
+<div class="sheet" id="pickSheet" role="dialog" aria-label="Choose" style="display:none"><div class="sheethandle"></div><div class="sheettitle" id="pickT"></div><div class="pickl" id="pickList"></div></div>
+<div class="dlgbg" id="dlgBg" onclick="dlgClose()" style="display:none"></div>
+<div class="dlg" id="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlgT" style="display:none"><div class="dlgic" id="dlgIc">⚠️</div><h3 id="dlgT"></h3><p class="muted" id="dlgM"></p><div class="dlgbtns"><button type="button" class="btn" onclick="dlgClose()">Cancel</button><button type="button" class="btn dgr" id="dlgOk" onclick="dlgConfirm()">OK</button></div></div>
+<div class="updbar" id="updBar" style="display:none"><span>✨ A new version is ready.</span><button type="button" class="btn primary" onclick="location.reload()">Reload</button></div>
+<div id="toast" style="position:fixed;right:15px;bottom:15px;background:#182541;border:1px solid #293858;padding:12px 15px;border-radius:10px;display:none"></div>
+
+<!-- Question index (counts only). Question text loads on demand from q-*.js files -->
+<script src="q-manifest.js"></script>
+<!-- App logic -->
+<script src="script.js"></script>
+</body>
+</html>

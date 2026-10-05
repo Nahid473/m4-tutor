@@ -1,0 +1,25 @@
+{
+  "name": "MCQ Master",
+  "short_name": "MCQ Master",
+  "description": "MCQ practice app: exams, Daily 50, search, read mode and more practice. Works offline.",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a1020",
+  "theme_color": "#0a1020",
+  "lang": "en",
+  "categories": ["education"],
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ],
+  "shortcuts": [
+    {"name": "Daily 50", "url": "./index.html?view=daily", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "Search", "url": "./index.html?view=search", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "More Practice", "url": "./index.html?view=practice", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}
+  ]
+}

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Question data check</title>
+<style>body{font-family:Arial,system-ui,sans-serif;background:#0a1020;color:#eef3ff;margin:0;padding:16px;max-width:1000px;margin:auto}
+h1{margin:0 0 6px}.muted{color:#9aa9c7}table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px}
+td,th{border-bottom:1px solid #293858;padding:8px;text-align:left;vertical-align:top}.ok{color:#46e0aa}.bad{color:#ff7185}.warn{color:#ffd978}
+code{background:#0d1528;padding:1px 5px;border-radius:5px}</style></head><body>
+<h1>Question data check</h1>
+<div class="muted">Keep this file next to <code>q-manifest.js</code> and the <code>q-*.js</code> files, then open it. Nothing is changed; it only reads and reports.</div>
+<div id="sum" style="margin:14px 0;font-weight:700">Checking…</div>
+<table><thead><tr><th>File</th><th>Where</th><th>Result</th></tr></thead><tbody id="rows"></tbody></table>
+<script src="q-manifest.js"></script>
+<script>
+const RAW=[];window.__shard=(k,c,s,a)=>RAW.push({k,c,s,a});
+const MAN=window.MANIFEST,rows=document.getElementById('rows');
+function load(k){return new Promise(res=>{const n=RAW.length,el=document.createElement('script');el.src=(MAN.p||'q-')+k+'.js?r='+Date.now();el.onload=()=>res(RAW.slice(n));el.onerror=()=>res(null);document.head.appendChild(el)})}
+function row(f,w,issues,notes){const tr=document.createElement('tr');tr.innerHTML=`<td>${f}</td><td>${w}</td><td>${issues.length?issues.map(x=>'<div class="bad">❌ '+x+'</div>').join(''):'<div class="ok">✅ OK</div>'}${(notes||[]).map(x=>'<div class="warn">⚠ '+x+'</div>').join('')}</td>`;rows.appendChild(tr);return issues.length}
+(async()=>{
+ let problems=0,files=0,total=0;const idOwner=new Map();
+ for(const c of MAN.cats)for(const s of c.s)for(const e of s.k){
+  files++;const where=c.c+' › '+s.n;const issues=[],notes=[];
+  const calls=await load(e.k);
+  if(!calls){problems+=row('q-'+e.k+'.js',where,['File not found or has a syntax error (check the file name and the last ]); line).']);continue}
+  if(calls.length!==1)notes.push(calls.length+' __shard calls in one file. The app now merges them, but keep one call per file and a unique key.');
+  const all=calls.flatMap(x=>x.a),first=calls[0];
+  if(first.k!==e.k)issues.push('Key inside the file is "'+first.k+'" but the manifest says "'+e.k+'".');
+  if(first.c!==c.c||first.s!==s.n)issues.push('Category/sub-category in the file ("'+first.c+' / '+first.s+'") differs from the manifest.');
+  const ids=new Set(),bad=[];let texts=0;
+  all.forEach(q=>{
+   let why=null;
+   if(!q||!Number.isFinite(q.id))why='no numeric id';
+   else if(typeof q.q!=='string'||!q.q.trim())why='empty question';
+   else if(ids.has(q.id))why='id repeated in this file';
+   else if(idOwner.has(q.id))why='id also used in q-'+idOwner.get(q.id)+'.js';
+   else if(q.t==='text'){if(!Array.isArray(q.ans)||!q.ans.some(x=>typeof x==='string'&&x.trim()))why='short answer without "ans" list'}
+   else if(!Array.isArray(q.o)||q.o.length<2)why='fewer than 2 options';
+   else if(!Number.isInteger(q.a)||q.a<0||q.a>=q.o.length)why='"a" (correct option number) is outside the options';
+   if(why){bad.push('id '+(q&&q.id)+': '+why);return}
+   ids.add(q.id);idOwner.set(q.id,e.k);if(q.t==='text')texts++;
+   if(q.e==null||q.e==='')notes.push('id '+q.id+' has no explanation');
+  });
+  total+=ids.size;
+  if(bad.length)issues.push(bad.length+' invalid question(s) will be skipped: '+bad.slice(0,6).join('; ')+(bad.length>6?' …':''));
+  const arr=[...ids].sort((a,b)=>a-b);
+  if(ids.size!==e.c)issues.push('Manifest says c='+e.c+' but the file has '+ids.size+' valid questions.');
+  if(texts!==(e.t||0))issues.push('Manifest says t='+(e.t||0)+' short-answer questions but the file has '+texts+'. (With "Short answer only"/"MCQ only" filters the file may be skipped.)');
+  if(arr.length&&(arr[0]!==e.lo||arr[arr.length-1]!==e.hi))issues.push('Manifest id range '+e.lo+'–'+e.hi+' but the file uses '+arr[0]+'–'+arr[arr.length-1]+'.');
+  if(Array.isArray(e.ls)){
+   let sum=0;e.ls.forEach(L=>{
+    const inR=arr.filter(i=>i>=L.lo&&i<=L.hi),t=all.filter(q=>q.t==='text'&&q.id>=L.lo&&q.id<=L.hi).length;sum+=L.c;
+    if(inR.length!==L.c)issues.push('Lesson "'+L.l+'": c='+L.c+' but '+inR.length+' questions fall in ids '+L.lo+'–'+L.hi+'.');
+    if(t!==(L.t||0))issues.push('Lesson "'+L.l+'": t='+(L.t||0)+' but it has '+t+' short-answer questions.');
+   });
+   if(sum!==e.c)issues.push('Lesson counts add up to '+sum+' but the file entry says c='+e.c+'.');
+  }
+  const qt=new Map();all.forEach(q=>{if(q&&q.q){const k=q.q.trim();qt.set(k,(qt.get(k)||0)+1)}});
+  const dups=[...qt].filter(x=>x[1]>1);if(dups.length)notes.push(dups.length+' question text(s) appear more than once, e.g. “'+dups[0][0].slice(0,50)+'”');
+  problems+=row('q-'+e.k+'.js',where,issues,notes.slice(0,5));
+ }
+ document.getElementById('sum').innerHTML=problems?`<span class="bad">${problems} file(s) with problems</span> — ${files} files, ${total} valid questions`:`<span class="ok">All ${files} files are OK</span> — ${total} valid questions`;
+})();
+</script></body></html>
